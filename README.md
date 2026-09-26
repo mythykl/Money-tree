@@ -4,7 +4,10 @@ A new project, just getting started.
 
 ## About
 
-Money Tree is a work in progress. More details on what it does and how to use it will be added here as the project takes shape.
+Money Tree is a wealth forecast and expense tracker for Indian youth aged 25–35.
+
+- **Product plan:** [docs/product-plan.md](docs/product-plan.md)
+- **Design system:** [Finance Tracker · Design System v0.1 (Figma)](https://www.figma.com/design/XuoHuziR2FNT1EZoEcd3Tl/Finance-Tracker-%C2%B7-Design-System-v0.1?node-id=2-27)
 
 ## Getting started
 
