@@ -46,10 +46,10 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--violet);ou
 .goals-label{left:60px;top:444px;color:var(--muted)}
 
 /* tooltip */
-.tip{top:235px;left:144px;width:152px;height:55px;background:var(--inv);color:#F5F6F7;border-radius:10px;padding:8px 10px;box-sizing:border-box;transition:left .45s var(--spring);box-shadow:0 10px 24px -10px rgba(11,17,23,.6)}
+.tip{top:232px;left:144px;background:var(--inv);color:#F5F6F7;border-radius:10px;padding:10px;box-sizing:border-box;display:grid;gap:8px;white-space:nowrap;transition:left .45s var(--spring);box-shadow:0 10px 24px -10px rgba(11,17,23,.6)}
 .dragging .tip,.dragging .mk-house,.dragging .house-tag{transition:none}
-.tip-top{display:flex;justify-content:space-between;align-items:center;font-size:9.5px;letter-spacing:.06em;color:var(--inv-muted)}
-.tip-row{display:flex;justify-content:space-between;align-items:baseline;margin-top:4px}
+.tip-top{display:flex;justify-content:space-between;align-items:center;gap:14px;font-size:9.5px;letter-spacing:.06em;color:var(--inv-muted)}
+.tip-row{display:flex;justify-content:space-between;align-items:baseline;gap:14px}
 .tip-val{font-size:20px;line-height:22px;font-variant-numeric:tabular-nums}
 .tip-goals{font-size:10.5px;color:var(--inv-muted)}
 .expand{width:22px;height:22px;border-radius:6px;border:1px solid #3A4149;display:grid;place-items:center;position:relative;transition:background .2s,transform .2s var(--spring)}
@@ -124,7 +124,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--violet);ou
 .askbtn{display:flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--border);border-radius:16px;background:#fff;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.08em;flex:none;transition:background .3s,color .3s,border-color .3s,transform .2s var(--spring)}
 .askbtn:hover{transform:translateY(-1px);border-color:var(--dusk2)}
 .askbtn:active{transform:scale(.94)}
-.askbtn.fired{background:var(--loss);border-color:var(--loss);color:#fff;pointer-events:none}
+.askbtn.fired{background:var(--accent);border-color:var(--accent);color:var(--text);pointer-events:none}
 .askbtn.fired svg{animation:spin .9s linear 2}
 @keyframes spin{to{transform:rotate(360deg)}}
 
@@ -313,7 +313,7 @@ function render(h){
   ['#vline'].forEach(q=>{$(q).setAttribute('x1',hx);$(q).setAttribute('x2',hx)});
   $('#dotP').setAttribute('cx',hx);$('#dotP').setAttribute('cy',Y(pot(h,h)));
   $('#dotB').setAttribute('cx',hx);$('#dotB').setAttribute('cy',Y(base(h)));
-  $('#tip').style.left=Math.max(40,Math.min(400-152,hx-76))+'px';
+  const tip=$('#tip'),tw=tip.offsetWidth;tip.style.left=Math.max(40,Math.min(400-tw,hx-tw/2))+'px';$('#vline').setAttribute('y1',232+tip.offsetHeight);
   const r=Math.round(h);
   $('#tipDate').textContent=`MAR ${yy(r)}' · AGE ${r-1998}`;
   $('#tipVal').textContent=L(pot(h,h));
@@ -327,7 +327,7 @@ function render(h){
   $('#houseSub').textContent=`₹18.5L down · '${yy(r)}`;
 }
 function setTotal(from){const to=138+(Math.round(hy)-2031)*3.2;count($('#total'),to,v=>'₹'+(v/100).toFixed(2)+'Cr',500,from)}
-render(hy);
+render(hy);document.fonts&&document.fonts.ready.then(()=>render(hy));
 
 /* drag */
 const phone=$('#phone');
