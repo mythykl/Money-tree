@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}</style>
+<title>Wealth Portfolio Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap">
+<style>
+:root{
+  --ground:#E6E3EE;--bg:#F6F5FA;--card:#FFFFFF;--sheet:#FCFBFE;--surface:#EEF0F2;--border:#DDE1E5;
+  --muted:#6B737B;--text:#0A0A0A;--inv:#111417;--inv-muted:#8A9199;--dusk4:#6E7C88;
+  --violet:#8C7FD6;--violet-d:#5E52B8;--lilac:#B9A7F0;--blue:#6F86C9;--gain:#5E9E7A;--loss:#E46247;--sun:#F2AE7B;--accent:#E9B99A;--dusk2:#B9C0C6;
+  --ease:cubic-bezier(.2,.8,.2,1);--spring:cubic-bezier(.34,1.56,.64,1);
+  color-scheme:light;
+}
+html,body{height:100%}
+body{background:var(--ground);color:var(--text);font-family:'Geist',system-ui,-apple-system,sans-serif;padding-inline:16px;padding-block:14px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;overflow:hidden}
+.mono{font-family:'Space Mono',ui-monospace,Menlo,monospace}
+.cap{font-family:'Space Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--violet);outline-offset:3px}
+.stage{position:relative;width:calc(440px * var(--s,1));height:calc(956px * var(--s,1));flex:none}
+.phone{position:absolute;left:0;top:0;width:440px;height:956px;transform:scale(var(--s,1));transform-origin:0 0;background:var(--bg);border-radius:52px;overflow:hidden;box-shadow:0 0 0 10px #0B1117,0 30px 80px -20px rgba(26,39,51,.45);user-select:none;-webkit-user-select:none}
+.a{position:absolute}
+
+/* status + header */
+.status{left:0;top:0;width:440px;height:44px;display:flex;align-items:center;justify-content:space-between;padding:6px 30px 0;box-sizing:border-box;font-weight:600;font-size:15px}
+.status svg{display:block}
+.title{left:32px;top:56px;font-size:20px;font-weight:300;line-height:26px}
+.avatar{right:32px;top:50px;width:40px;height:40px;border-radius:50%;background:linear-gradient(160deg,#A7B8CA,#CBD2DD 45%,#E9B99A);display:grid;place-items:center;font-weight:500;font-size:15px;color:#1A2733}
+
+/* cards */
+.card{background:var(--card);border-radius:24px;box-shadow:0 1px 0 rgba(17,20,23,.03),0 12px 30px -18px rgba(46,38,92,.18)}
+.hero{left:32px;top:124px;width:376px;height:495px}
+.total{left:60px;top:150px;font-size:32px;line-height:38px;font-variant-numeric:tabular-nums}
+.habit{left:60px;top:195px;height:24px;padding:0 12px;border-radius:12px;background:var(--gain);color:#fff;font-size:12px;display:flex;align-items:center}
+.range-pill{left:279px;top:155px;height:30px;padding:0 14px;border:1px solid var(--border);border-radius:15px;display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.08em}
+#chart{left:0;top:0;pointer-events:none;overflow:visible}
+#chart text{font-family:'Space Mono',monospace;font-size:10px;fill:var(--muted)}
+#pot,#band,#linkLine{transition:d .25s var(--ease)}
+.legend{left:60px;top:406px;display:flex;gap:16px;font-size:11px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{display:block;width:16px;height:0;border-top:2px solid}
+.goals-label{left:60px;top:444px;color:var(--muted)}
+
+/* tooltip */
+.tip{top:235px;left:144px;width:152px;height:55px;background:var(--inv);color:#F5F6F7;border-radius:10px;padding:8px 10px;box-sizing:border-box;transition:left .45s var(--spring);box-shadow:0 10px 24px -10px rgba(11,17,23,.6)}
+.dragging .tip,.dragging .mk-house,.dragging .house-tag{transition:none}
+.tip-top{display:flex;justify-content:space-between;align-items:center;font-size:9.5px;letter-spacing:.06em;color:var(--inv-muted)}
+.tip-row{display:flex;justify-content:space-between;align-items:baseline;margin-top:4px}
+.tip-val{font-size:20px;line-height:22px;font-variant-numeric:tabular-nums}
+.tip-goals{font-size:10.5px;color:var(--inv-muted)}
+.expand{width:22px;height:22px;border-radius:6px;border:1px solid #3A4149;display:grid;place-items:center;position:relative;transition:background .2s,transform .2s var(--spring)}
+.expand:hover{background:#262B30;transform:scale(1.08)}
+.expand:active{transform:scale(.92)}
+.expand.pulse::after{content:"";position:absolute;inset:-3px;border-radius:8px;border:1.5px solid var(--lilac);animation:ring 1.4s var(--ease) infinite}
+@keyframes ring{0%{opacity:.9;transform:scale(.9)}100%{opacity:0;transform:scale(1.6)}}
+
+/* timeline */
+.track{left:44px;top:500px;width:352px;height:48px;cursor:pointer;touch-action:none}
+.mk{position:absolute;top:521px;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;display:grid;place-items:center;font-family:'Space Mono',monospace;font-size:11px;pointer-events:none}
+.mk-g{background:var(--surface);color:var(--dusk4)}
+.mk-c{background:var(--surface);color:var(--dusk4)}
+.mk-s{background:var(--violet);color:#fff}
+.ghost{background:transparent;border:1.5px dashed var(--dusk2);box-sizing:border-box;transition:opacity .3s}
+.mk-house{width:30px;height:30px;margin:-15px 0 0 -15px;background:var(--gain);color:#fff;box-shadow:0 0 0 3px #fff,0 4px 12px -2px rgba(94,158,122,.6);pointer-events:auto;cursor:grab;touch-action:none;transition:left .4s var(--spring),transform .2s var(--spring);z-index:2}
+.mk-house:active,.dragging .mk-house{cursor:grabbing;transform:scale(1.15)}
+.mk-house.hint::before{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid var(--gain);animation:ring 1.6s var(--ease) infinite}
+.house-tag{top:478px;height:22px;padding:0 9px;margin-left:-34px;min-width:68px;box-sizing:border-box;background:var(--inv);color:#F5F6F7;border-radius:11px;font-size:10.5px;display:flex;align-items:center;justify-content:center;transition:left .4s var(--spring);white-space:nowrap}
+.caption{left:60px;top:577px;font-size:13px;color:var(--muted);line-height:18px}
+.caption b{font-family:'Space Mono',monospace;font-weight:400;color:var(--gain)}
+.caption b.neg{color:var(--loss)}
+
+/* list */
+.list{left:36px;top:634px;width:368px;height:240px;padding:0 24px;box-sizing:border-box}
+.row{height:56px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--surface)}
+.row .ic{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-family:'Space Mono',monospace;font-size:11px;flex:none}
+.row .nm{font-size:15px;line-height:20px}
+.row .sub{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted)}
+.row .tag{margin-left:auto;font-size:9.5px}
+
+/* nav */
+.fade{left:0;top:810px;width:440px;height:146px;background:linear-gradient(to bottom,rgba(246,245,250,0),var(--bg) 35%);pointer-events:none}
+.nav{left:32px;top:860px;width:376px;height:64px;border-radius:32px;background:var(--card);box-shadow:0 10px 30px -14px rgba(46,38,92,.3);display:flex;align-items:center;justify-content:space-around;padding:0 10px;box-sizing:border-box;font-size:14px;color:var(--muted)}
+.nav .on{background:var(--inv);color:#fff;padding:12px 22px;border-radius:24px}
+.homebar{left:153px;bottom:9px;width:134px;height:5px;border-radius:3px;background:var(--text);z-index:20}
+
+/* sheet */
+.backdrop{inset:0;background:rgba(17,20,23,.34);opacity:0;pointer-events:none;transition:opacity .4s var(--ease);z-index:8}
+.backdrop.on{opacity:1;pointer-events:auto}
+.sheet{left:0;width:440px;top:956px;bottom:0;background:var(--sheet);border-radius:36px 36px 0 0;z-index:9;transition:top .6s var(--ease);box-shadow:0 -20px 40px -24px rgba(11,17,23,.35)}
+.sheet.open{top:458px}
+.sheet.expanded{top:46px}
+.handle{position:absolute;left:50%;top:6px;width:60px;height:20px;margin-left:-30px;display:grid;place-items:center;z-index:2}
+.handle i{display:block;width:36px;height:5px;border-radius:3px;background:var(--border)}
+.scroll{position:absolute;inset:26px 0 0 0;overflow-y:auto;padding:14px 20px 150px;box-sizing:border-box;scrollbar-width:none;overscroll-behavior:contain}
+.scroll::-webkit-scrollbar{display:none}
+.when{color:var(--muted);font-size:12px}
+.amount{font-size:36px;line-height:44px;margin-top:10px;font-variant-numeric:tabular-nums}
+.range{font-size:11px;color:var(--muted);margin-top:2px}
+.bar{display:flex;gap:4px;height:14px;margin-top:18px}
+.bar i{display:block;border-radius:4px;flex:0.0001 1 0;transition:flex-grow .8s var(--ease)}
+.alloc{margin-top:14px;display:grid;gap:6px}
+.al{display:grid;grid-template-columns:16px 1fr auto 64px;align-items:center;font-size:14px;line-height:20px;opacity:0;transform:translateY(6px);transition:.4s var(--ease)}
+.al.in{opacity:1;transform:none}
+.al .d{width:10px;height:10px;border-radius:50%}
+.al .p,.al .v{font-family:'Space Mono',monospace;font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
+.sec{margin-top:22px;color:var(--muted);font-size:10.5px}
+.chips{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.chip{background:var(--surface);border-radius:14px;padding:6px 14px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.06em}
+
+.ask-row{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-top:24px}
+.bubble{background:var(--surface);border-radius:22px;padding:11px 16px;font-size:15px;line-height:20px;max-width:270px;border:1.5px solid transparent;display:flex;gap:8px;align-items:flex-start;transition:border-color .2s,background .2s,box-shadow .2s}
+.bubble .pen{flex:none;margin-top:3px;opacity:.55;transition:opacity .2s,width .3s}
+.bubble.editable{cursor:text}
+.bubble.editable:hover{border-color:var(--border)}
+.bubble.editable:focus-within{border-color:var(--violet);background:#fff;box-shadow:0 0 0 4px rgba(140,127,214,.16)}
+.edit{outline:none;min-width:40px;user-select:text;-webkit-user-select:text}
+.bubble.editable .edit:not(:focus)::after{content:"";display:inline-block;width:1.5px;height:16px;background:var(--violet);margin-left:2px;vertical-align:-3px;animation:blink 1.1s steps(1) infinite}
+.bubble:not(.editable) .pen{display:none}
+@keyframes blink{50%{opacity:0}}
+.askbtn{display:flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--border);border-radius:16px;background:#fff;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.08em;flex:none;transition:background .3s,color .3s,border-color .3s,transform .2s var(--spring)}
+.askbtn:hover{transform:translateY(-1px);border-color:var(--dusk2)}
+.askbtn:active{transform:scale(.94)}
+.askbtn.fired{background:var(--loss);border-color:var(--loss);color:#fff;pointer-events:none}
+.askbtn.fired svg{animation:spin .9s linear 2}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.ans{display:flex;gap:12px;margin-top:18px}
+.orb{width:28px;height:28px;border-radius:50%;flex:none;background:linear-gradient(180deg,#A7B8CA,#CBD2DD 55%,#E9B99A)}
+.ans.thinking .orb{animation:breathe 1s var(--ease) infinite alternate}
+@keyframes breathe{to{transform:scale(1.15);filter:saturate(1.4)}}
+.dots{display:flex;gap:4px;padding-top:11px}
+.dots i{width:6px;height:6px;border-radius:50%;background:var(--dusk2);animation:dot 1s infinite}
+.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes dot{0%,100%{transform:none;opacity:.5}40%{transform:translateY(-4px);opacity:1}}
+.ans h4{margin:3px 0 0;font-size:16px;font-weight:500;line-height:22px}
+.ans p{margin:2px 0 0;font-size:14px;color:var(--muted);line-height:20px}
+.rv{opacity:0;transform:translateY(12px);transition:opacity .5s var(--ease),transform .5s var(--ease)}
+.rv.in{opacity:1;transform:none}
+.scn{background:var(--surface);border-radius:24px;padding:22px 24px 18px;margin-top:18px}
+.scn .lbl{color:var(--muted);font-size:10.5px}
+.scn .big{display:flex;align-items:baseline;gap:14px;margin-top:10px}
+.scn .delta{font-size:26px;color:var(--gain);font-variant-numeric:tabular-nums}
+.scn .delta.neg{color:var(--loss)}
+.scn svg{display:block;width:100%;height:auto;margin-top:12px;overflow:visible}
+.scn svg text{font-family:'Space Mono',monospace;font-size:9px;fill:var(--muted)}
+.draw{stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 1.1s var(--ease)}
+.in .draw{stroke-dashoffset:0}
+.pop{transform-box:fill-box;transform-origin:center;transform:scale(0);transition:transform .4s var(--spring) .9s}
+.in .pop{transform:scale(1)}
+.scn .lg{display:flex;gap:18px;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-top:8px}
+.scn .lg span{display:flex;align-items:center;gap:6px}
+.scn .lg i{display:block;width:16px;border-top:2px solid}
+.math{display:grid;gap:6px;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);max-height:0;overflow:hidden;transition:max-height .45s var(--ease),margin .45s var(--ease)}
+.math.open{max-height:120px;margin-top:14px}
+.math div{display:flex;justify-content:space-between;border-top:1px dashed var(--border);padding-top:6px}
+.math b{font-weight:400;color:var(--text)}
+.acts{display:flex;gap:10px;justify-content:center;margin-top:18px}
+.btn{height:42px;padding:0 26px;border-radius:21px;font-family:'Space Mono',monospace;font-size:11.5px;letter-spacing:.08em;transition:transform .2s var(--spring),background .3s}
+.btn:active{transform:scale(.95)}
+.btn.pri{background:var(--text);color:#fff}
+.btn.pri.done{background:var(--gain)}
+.btn.sec2{border:1px solid var(--border);background:#fff}
+.sugs{display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.sug{border:1px solid var(--border);border-radius:17px;padding:8px 16px;font-size:13px;color:#3C434A;background:transparent;transition:background .2s,transform .2s var(--spring)}
+.sug:hover{background:#fff;transform:translateY(-1px)}
+.user-row{display:flex;justify-content:flex-end;margin-top:26px}
+.user-row .bubble{animation:rise .45s var(--ease)}
+@keyframes rise{from{opacity:0;transform:translateY(10px) scale(.97)}}
+
+.askbar{position:absolute;left:20px;right:20px;bottom:30px;height:54px;border-radius:27px;background:var(--surface);display:flex;align-items:center;padding:0 8px 0 20px;gap:8px;opacity:0;transform:translateY(16px);pointer-events:none;transition:opacity .4s var(--ease),transform .4s var(--ease);z-index:3}
+.sheet.expanded.answered .askbar{opacity:1;transform:none;pointer-events:auto}
+.askbar input{flex:1;border:0;background:transparent;font:15px 'Geist',system-ui,sans-serif;color:var(--text);outline:none}
+.askbar input::placeholder{color:var(--muted)}
+.send{width:38px;height:38px;border-radius:50%;background:var(--text);display:grid;place-items:center;transition:transform .2s var(--spring)}
+.send:hover{transform:scale(1.06)}.send:active{transform:scale(.9)}
+.sheet-fade{position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(to bottom,rgba(252,251,254,0),var(--sheet) 55%);pointer-events:none;z-index:2;opacity:0;transition:opacity .4s}
+.sheet.expanded.answered .sheet-fade{opacity:1}
+
+.toast{left:50%;top:54px;transform:translate(-50%,-80px);background:var(--inv);color:#F5F6F7;padding:10px 18px;border-radius:20px;font-size:13px;z-index:12;display:flex;gap:8px;align-items:center;transition:transform .5s var(--spring);white-space:nowrap}
+.toast.show{transform:translate(-50%,0)}
+.toast i{width:8px;height:8px;border-radius:50%;background:var(--gain)}
+
+.hint{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;align-items:center;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);max-width:520px}
+.hint b{font-weight:400;color:var(--violet-d)}
+.reset{border:1px solid #C9C4D6;border-radius:12px;padding:3px 10px;font-family:'Space Mono',monospace;font-size:11px;color:var(--text);background:rgba(255,255,255,.5)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+<div class="phone" id="phone">
+  <div class="a status"><span>9:41</span>
+    <svg width="68" height="12" viewBox="0 0 68 12" fill="none"><rect x="0" y="7" width="3" height="5" rx="1" fill="#0A0A0A"/><rect x="5" y="5" width="3" height="7" rx="1" fill="#0A0A0A"/><rect x="10" y="2.5" width="3" height="9.5" rx="1" fill="#0A0A0A"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#0A0A0A"/><path d="M29 3.5a9 9 0 0 1 12 0M31.2 6a5.6 5.6 0 0 1 7.6 0M33.5 8.6a2.2 2.2 0 0 1 3 0" stroke="#0A0A0A" stroke-width="1.6" stroke-linecap="round"/><rect x="44.5" y="1" width="21" height="10" rx="3" stroke="#0A0A0A" opacity=".4"/><rect x="46.5" y="3" width="17" height="6" rx="1.5" fill="#0A0A0A"/><rect x="66.5" y="4" width="1.5" height="4" rx=".7" fill="#0A0A0A" opacity=".4"/></svg>
+  </div>
+  <div class="a title">Wealth portfolio</div>
+  <div class="a avatar">M</div>
+
+  <div class="a card hero"></div>
+  <div class="a total mono" id="total">₹1.38Cr</div>
+  <div class="a habit">Good habits add ₹38L by 2036</div>
+  <div class="a range-pill mono">10 YEARS <svg width="8" height="5" viewBox="0 0 8 5"><path d="M1 1l3 3 3-3" stroke="#0A0A0A" stroke-width="1.3" fill="none"/></svg></div>
+
+  <svg id="chart" class="a" width="440" height="620" viewBox="0 0 440 620">
+    <g stroke="#EEF0F2" stroke-width="1"><line x1="60" x2="380" y1="238" y2="238"/><line x1="60" x2="380" y1="283" y2="283"/><line x1="60" x2="380" y1="328" y2="328"/><line x1="60" x2="380" y1="372" y2="372"/></g>
+    <path id="band" fill="#B9A7F0" fill-opacity=".32" stroke="none"/>
+    <line x1="60" x2="380" y1="364" y2="364" stroke="#E46247" stroke-width="1" stroke-dasharray="4 3" opacity=".8"/>
+    <text x="380" y="357" text-anchor="end" style="fill:#E46247;font-size:8.5px;letter-spacing:.06em">EMERGENCY FLOOR</text>
+    <path id="base" fill="none" stroke="#6E7C88" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <path id="pot" fill="none" stroke="#8C7FD6" stroke-width="2" stroke-linecap="round"/>
+    <path id="cur" fill="none" stroke="#0A0A0A" stroke-width="2.2" stroke-linecap="round"/>
+    <circle id="curDot" r="4" fill="#0A0A0A"/>
+    <line id="vline" y1="290" y2="372" stroke="#0A0A0A" stroke-width="1"/>
+    <circle id="dotB" r="4.5" fill="#fff" stroke="#6E7C88" stroke-width="1.5"/>
+    <circle id="dotP" r="5.5" fill="#8C7FD6" stroke="#fff" stroke-width="2"/>
+    <g id="xl"></g>
+    <line x1="60" x2="380" y1="521" y2="521" stroke="#DDE1E5" stroke-width="1.5"/>
+    <g id="tl"></g>
+    <line id="linkLine" y1="521" y2="521" stroke="#5E9E7A" stroke-width="2" stroke-dasharray="2 4" stroke-linecap="round"/>
+  </svg>
+
+  <div class="a tip" id="tip">
+    <div class="tip-top mono"><span id="tipDate">MAR 31' · AGE 33</span>
+      <button class="expand pulse" id="expand" aria-label="Open details for this date"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 8L8 2M3.5 2H8v4.5" stroke="#F5F6F7" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+    <div class="tip-row"><span class="tip-val mono" id="tipVal">₹64.2L</span><span class="tip-goals mono" id="tipGoals">2 goals</span></div>
+  </div>
+
+  <div class="a legend"><span><i style="border-color:#0A0A0A"></i>Current</span><span><i style="border-color:#8C7FD6"></i>Potential</span><span><i style="border-color:#6E7C88;border-top-style:dashed"></i>Baseline</span><span><i style="border:0;width:14px;height:10px;background:#B9A7F0;opacity:.5;border-radius:2px"></i>Range</span></div>
+  <div class="a goals-label cap">Goals on your timeline</div>
+
+  <div class="a track" id="track"></div>
+  <div class="mk ghost" id="ghost" style="left:156px"></div>
+  <div class="mk mk-g" style="left:88.8px">G</div>
+  <div class="mk mk-c" style="left:120.8px">C</div>
+  <div class="mk mk-s" style="left:252px">S</div>
+  <div class="a house-tag mono" id="houseTag">House '31</div>
+  <div class="mk mk-house hint" id="house" tabindex="0" role="slider" aria-label="House purchase year" aria-valuemin="2028" aria-valuemax="2035">H</div>
+  <div class="a caption" id="caption"></div>
+
+  <div class="a card list">
+    <div class="row"><span class="ic" style="background:#E3EFE8;color:#5E9E7A">H</span><div><div class="nm">House</div><div class="sub" id="houseSub">₹18.5L down · '31</div></div><span class="tag cap" style="color:#5E9E7A">Appreciating</span></div>
+    <div class="row"><span class="ic" style="background:var(--surface);color:var(--dusk4)">C</span><div><div class="nm">Car</div><div class="sub">₹9L · '27</div></div><span class="tag cap" style="color:#E46247">Depreciating</span></div>
+    <div class="row"><span class="ic" style="background:var(--surface);color:var(--dusk4)">G</span><div><div class="nm">Goa trip</div><div class="sub">₹2.4L = ₹6.1L less at 40</div></div><span class="tag cap" style="color:#D98B52">Experience</span></div>
+    <div class="row" style="border:0"><span class="ic" style="background:#ECE9F9;color:#5E52B8">S</span><div><div class="nm">Studio</div><div class="sub">3 outcomes · '32</div></div><span class="tag cap" style="color:#8C7FD6">Venture</span></div>
+  </div>
+
+  <div class="a fade"></div>
+  <nav class="a nav"><span class="on">Wealth</span><span>Spend</span><span>Habits</span><span>Ask</span></nav>
+
+  <div class="a backdrop" id="backdrop"></div>
+  <section class="a sheet" id="sheet" aria-label="Details for selected date">
+    <button class="handle" id="handle" aria-label="Close details"><i></i></button>
+    <div class="scroll" id="scroll">
+      <div class="when cap" id="sWhen">March 2031 · Age 33</div>
+      <div class="amount mono" id="sAmt">₹64,20,000</div>
+      <div class="range mono" id="sRange">range ₹52L – ₹71L</div>
+      <div class="bar" id="bar"></div>
+      <div class="alloc" id="alloc"></div>
+      <div class="sec cap">Goals hit by then</div>
+      <div class="chips" id="sChips"></div>
+      <div class="ask-row" id="askRow">
+        <div class="bubble editable" id="bubble"><svg class="pen" width="12" height="12" viewBox="0 0 12 12"><path d="M8.3 1.7l2 2L4 10H2V8z" stroke="#6B737B" stroke-width="1.2" fill="none" stroke-linejoin="round"/></svg><span class="edit" id="prompt" contenteditable="true" spellcheck="false" role="textbox" aria-label="Question to ask">What if I buy the car in 2028 instead?</span></div>
+        <button class="askbtn" id="askBtn">ASK <svg width="11" height="11" viewBox="0 0 12 12"><path d="M6 0.5l1.3 3.7L11 5.5 7.3 6.8 6 10.5 4.7 6.8 1 5.5l3.7-1.3z" fill="currentColor"/><circle cx="10.3" cy="1.5" r="1" fill="currentColor"/></svg></button>
+      </div>
+      <div id="thread"></div>
+    </div>
+    <div class="sheet-fade"></div>
+    <form class="askbar" id="askbar"><input id="askInput" placeholder="Ask a what-if…" autocomplete="off"><button class="send" aria-label="Send"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 12V2M2.5 6.5L7 2l4.5 4.5" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></form>
+  </section>
+  <div class="a toast" id="toast"><i></i><span id="toastTxt">Plan updated</span></div>
+  <div class="a homebar"></div>
+</div>
+</div>
+<div class="hint"><span><b>1</b> Drag House on the timeline</span><span><b>2</b> Tap ↗ in the chart tooltip</span><span><b>3</b> Edit the question, tap Ask</span><button class="reset" id="reset">Restart</button></div>
+
+<script>
+const $=q=>document.querySelector(q), NS='http://www.w3.org/2000/svg';
+const ORIG=2029, MIN=2028, MAX=2035;
+let hy=2031, s=1;
+const X=y=>60+(y-2026)*32, Y=v=>372-v*.83;
+const pot=(yr,h)=>{const t=yr-2026;let v=14.9+124*Math.pow(Math.max(t,0)/10,1.23);v-=8*Math.exp(-((yr-h-.45)**2)/.25);if(yr>h)v+=(h-2031)*3.2*Math.min(1,(yr-h)/(2036-h));return v};
+const base=yr=>{const t=yr-2026;return 14.9+84*Math.pow(Math.max(t,0)/10,1.35)-5*Math.exp(-((yr-ORIG-.45)**2)/.25)};
+const pts=(f,a,b)=>{const o=[];for(let y=a;y<=b+1e-6;y+=.1)o.push([X(y),Y(f(y))]);return o};
+const d=p=>p.map((q,i)=>(i?'L':'M')+q[0].toFixed(1)+' '+q[1].toFixed(1)).join('');
+const yy=y=>String(Math.round(y)).slice(2);
+const L=v=>'₹'+v.toFixed(1)+'L';
+const inr=v=>'₹'+(Math.round(v*10)*10000).toLocaleString('en-IN');
+const ease=t=>1-Math.pow(1-t,3);
+function tween(from,to,ms,cb,done){const t0=performance.now();(function f(n){const k=Math.min(1,(n-t0)/ms);cb(from+(to-from)*ease(k));k<1?requestAnimationFrame(f):done&&done()})(t0)}
+function count(el,to,fmt,ms=700,from=0){tween(from,to,ms,v=>el.textContent=fmt(v))}
+
+/* static chart bits */
+$('#base').setAttribute('d',d(pts(base,2026,2036)));
+const cp=pts(y=>base(y)+.6,2026,2028.2);$('#cur').setAttribute('d',d(cp));
+$('#curDot').setAttribute('cx',cp.at(-1)[0]);$('#curDot').setAttribute('cy',cp.at(-1)[1]);
+for(let y=2026;y<=2036;y+=2){
+  const t=document.createElementNS(NS,'text');t.setAttribute('x',X(y));t.setAttribute('y',390);t.setAttribute('text-anchor','middle');t.textContent="'"+yy(y);$('#xl').append(t);
+  const k=document.createElementNS(NS,'line');k.setAttribute('x1',X(y));k.setAttribute('x2',X(y));k.setAttribute('y1',516);k.setAttribute('y2',526);k.setAttribute('stroke','#DDE1E5');k.setAttribute('stroke-width','1.5');$('#tl').append(k);
+  const t2=t.cloneNode(true);t2.setAttribute('y',556);$('#tl').append(t2);
+}
+
+function goalsBy(h){return [['GOA',2027],['HOUSE',Math.round(h)],['STUDIO',2032]].filter(g=>g[1]<=Math.round(h))}
+function render(h){
+  const up=pts(y=>pot(y,h)+1+(y-2026)*1.9,2026,2036), lo=pts(y=>pot(y,h)-1-(y-2026)*1.5,2026,2036).reverse();
+  $('#band').setAttribute('d',d(up)+d(lo).replace('M','L')+'Z');
+  $('#pot').setAttribute('d',d(pts(y=>pot(y,h),2026,2036)));
+  const hx=X(h);
+  ['#vline'].forEach(q=>{$(q).setAttribute('x1',hx);$(q).setAttribute('x2',hx)});
+  $('#dotP').setAttribute('cx',hx);$('#dotP').setAttribute('cy',Y(pot(h,h)));
+  $('#dotB').setAttribute('cx',hx);$('#dotB').setAttribute('cy',Y(base(h)));
+  $('#tip').style.left=Math.max(40,Math.min(400-152,hx-76))+'px';
+  const r=Math.round(h);
+  $('#tipDate').textContent=`MAR ${yy(r)}' · AGE ${r-1998}`;
+  $('#tipVal').textContent=L(pot(h,h));
+  const g=goalsBy(h).length;$('#tipGoals').textContent=g+(g===1?' goal':' goals');
+  $('#house').style.left=hx+'px';$('#houseTag').style.left=hx+'px';$('#houseTag').textContent=`House '${yy(r)}`;
+  $('#house').setAttribute('aria-valuenow',r);
+  $('#ghost').style.opacity=Math.abs(h-ORIG)<.3?0:1;
+  const ll=$('#linkLine');ll.setAttribute('x1',X(ORIG)+(h>ORIG?14:-14));ll.setAttribute('x2',hx+(h>ORIG?-17:17));ll.style.opacity=Math.abs(h-ORIG)<1?0:1;
+  const dl=(r-ORIG)*3.2, cap=$('#caption');
+  cap.innerHTML=dl===0?`House '29 is your original plan. Drag it to compare.`:`Moving House '29 → '${yy(r)} ${dl>0?'adds':'costs'} <b class="${dl<0?'neg':''}">${L(Math.abs(dl))}</b> by 2036`;
+  $('#houseSub').textContent=`₹18.5L down · '${yy(r)}`;
+}
+function setTotal(from){const to=138+(Math.round(hy)-2031)*3.2;count($('#total'),to,v=>'₹'+(v/100).toFixed(2)+'Cr',500,from)}
+render(hy);
+
+/* drag */
+const phone=$('#phone');
+function yearAt(e){const b=phone.getBoundingClientRect();const x=(e.clientX-b.left)/s;return Math.max(MIN,Math.min(MAX,2026+(x-60)/32))}
+let dragging=false,lastTotal=138;
+function start(e){dragging=true;phone.classList.add('dragging');$('#house').classList.remove('hint');$('#expand').classList.remove('pulse');e.currentTarget.setPointerCapture(e.pointerId);hy=yearAt(e);render(hy)}
+function move(e){if(!dragging)return;hy=yearAt(e);render(hy)}
+function end(){if(!dragging)return;dragging=false;phone.classList.remove('dragging');const to=Math.round(hy);tween(hy,to,260,v=>render(v),()=>{hy=to;render(hy);settle()})}
+function settle(){const prev=lastTotal;lastTotal=138+(hy-2031)*3.2;setTotal(prev);const b=$('#expand');b.classList.remove('pulse');void b.offsetWidth;b.classList.add('pulse')}
+['#house','#track'].forEach(q=>{const el=$(q);el.addEventListener('pointerdown',start);el.addEventListener('pointermove',move);el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end)});
+$('#house').addEventListener('keydown',e=>{const k={ArrowRight:1,ArrowUp:1,ArrowLeft:-1,ArrowDown:-1}[e.key];if(!k)return;e.preventDefault();const to=Math.max(MIN,Math.min(MAX,hy+k));if(to===hy)return;const from=hy;tween(from,to,260,v=>render(v),()=>{hy=to;render(hy);settle()})});
+
+/* sheet */
+const sheet=$('#sheet'),scroll=$('#scroll');
+const ALLOC=[['Equity',46,'#8C7FD6'],['House eq.',28,'#6FA07E'],['PPF',12,'#6F86C9'],['Gold',8,'#E9B99A'],['Cash',6,'#B9C0C6']];
+function openSheet(){
+  const r=Math.round(hy),v=pot(r,r);
+  $('#sWhen').textContent=`March ${r} · Age ${r-1998}`;
+  $('#sRange').textContent=`range ₹${Math.round(v*.81)}L – ₹${Math.round(v*1.106)}L`;
+  $('#bar').innerHTML=ALLOC.map(a=>`<i style="background:${a[2]}"></i>`).join('');
+  $('#alloc').innerHTML=ALLOC.map(a=>`<div class="al"><span class="d" style="background:${a[2]}"></span><span>${a[0]}</span><span class="p">${a[1]}%</span><span class="v">${L(v*a[1]/100)}</span></div>`).join('');
+  $('#sChips').innerHTML=goalsBy(r).map(g=>`<span class="chip">✓ ${g[0]} '${yy(g[1])}</span>`).join('');
+  scroll.scrollTop=0;
+  $('#backdrop').classList.add('on');sheet.classList.add('open');
+  count($('#sAmt'),v,inr,900);
+  setTimeout(()=>{[...$('#bar').children].forEach((el,i)=>el.style.flexGrow=ALLOC[i][1]);[...$('#alloc').children].forEach((el,i)=>setTimeout(()=>el.classList.add('in'),i*60))},280);
+}
+function closeSheet(){
+  $('#backdrop').classList.remove('on');sheet.classList.remove('open','expanded','answered');
+  setTimeout(()=>{$('#thread').innerHTML='';const b=$('#bubble');b.classList.add('editable');$('#prompt').contentEditable='true';$('#askBtn').classList.remove('fired');$('#applyBtn');},600);
+}
+$('#expand').addEventListener('click',e=>{e.stopPropagation();openSheet()});
+$('#backdrop').addEventListener('click',closeSheet);
+$('#handle').addEventListener('click',closeSheet);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&sheet.classList.contains('open'))closeSheet()});
+$('#prompt').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('#askBtn').click()}});
+$('#bubble').addEventListener('click',()=>{const p=$('#prompt');if(p.isContentEditable&&document.activeElement!==p){p.focus();const r=document.createRange();r.selectNodeContents(p);r.collapse(false);const s=getSelection();s.removeAllRanges();s.addRange(r)}});
+
+function answerFor(text){
+  const yr=(text.match(/20(\d\d)/)||[])[0];
+  if(/car/i.test(text)){const y=+(yr||2028),dl=+((y-2027)*4.2).toFixed(1);
+    return {dl,evt:y,label:`Scenario · Car in ${y}`,leg:`Car in ${y}`,
+      h:`Your 2036 number goes ${dl>=0?'up':'down'} by ${L(Math.abs(dl))}.`,
+      p:dl>=0?'One more year of SIPs before the down payment compounds, and the car dent is smaller.':'The car lands before your SIPs have time to compound, so the dent is bigger.',
+      math:[['Extra SIP months before the car',`+${L(dl*.7)}`],['Smaller depreciation by 2036',`+${L(dl*.3)}`]]}}
+  if(/step|sip/i.test(text))return {dl:11.8,evt:2027,label:'Scenario · 10% SIP step-up',leg:'With step-up',h:'A 10% yearly step-up adds ₹11.8L by 2036.',p:'Your SIP grows with your salary, so you close most of the gap to Potential by ’33.',math:[['SIP ₹22k/mo, +10% a year','+₹9.6L'],['Compounding on the extra','+₹2.2L']]};
+  if(/drop|why/i.test(text)){const r=Math.round(hy);return {dl:-3.1,evt:r,label:`Scenario · House in ${r}`,leg:'Your plan',h:`Your 5Y number is ₹3.1L lower because the house down payment lands in ${r}.`,p:'It recovers by ’34 as home equity builds up.',math:[['Down payment ₹18.5L leaves equity','−₹3.9L'],['Home equity by 2031','+₹0.8L']]}}
+  return {dl:2.4,evt:2029,label:'Scenario · Your what-if',leg:'With change',h:'That adds about ₹2.4L by 2036.',p:'A rough read from your current SIPs and goal dates. Tap Show math to see how.',math:[['Change in monthly surplus','+₹1.6L'],['Compounding to 2036','+₹0.8L']]};
+}
+function miniChart(a){
+  const xm=y=>14+(y-2026)*29.5, cpv=t=>72-44*Math.pow(t/10,1.15), dip=(t,c)=>6*Math.exp(-((t-c)**2)/.35);
+  const cur=[],scn=[];for(let t=0;t<=10.001;t+=.2){cur.push([xm(2026+t),cpv(t)+dip(t,1)]);scn.push([xm(2026+t),cpv(t)-a.dl*1.1*Math.pow(t/10,1.2)+dip(t,a.evt-2026)-(t<1.5?4*Math.sin(t/1.5*Math.PI):0)])}
+  const P=p=>p.map((q,i)=>(i?'L':'M')+q[0].toFixed(1)+' '+q[1].toFixed(1)).join('');
+  const nearest=(p,y)=>p.reduce((b,q)=>Math.abs(q[0]-xm(y))<Math.abs(b[0]-xm(y))?q:b);
+  const c1=nearest(cur,2027),c2=nearest(scn,a.evt);
+  let lbl='';for(let y=2026;y<=2036;y+=2)lbl+=`<text x="${xm(y)}" y="104" text-anchor="middle">'${yy(y)}</text>`;
+  return `<svg viewBox="0 0 320 110"><path d="${P(cur)}" fill="none" stroke="#6E7C88" stroke-width="1.5" stroke-dasharray="4 3"/><path class="draw" pathLength="1" d="${P(scn)}" fill="none" stroke="#8C7FD6" stroke-width="2" stroke-linecap="round"/><circle class="pop" cx="${c1[0]}" cy="${c1[1]}" r="4.5" fill="#EEF0F2" stroke="#E46247" stroke-width="1.6"/><circle class="pop" cx="${c2[0]}" cy="${c2[1]}" r="4.5" fill="#E46247" stroke="#fff" stroke-width="1.5"/>${lbl}</svg>`;
+}
+function ask(text,row){
+  sheet.classList.add('expanded');
+  const box=document.createElement('div');box.className='ans thinking';box.innerHTML='<span class="orb"></span><div class="dots"><i></i><i></i><i></i></div>';
+  $('#thread').append(box);
+  setTimeout(()=>scroll.scrollTo({top:row.offsetTop-250,behavior:'smooth'}),620);
+  setTimeout(()=>{
+    const a=answerFor(text);box.classList.remove('thinking');
+    box.innerHTML=`<span class="orb"></span><div><h4 class="rv">${a.h}</h4><p class="rv">${a.p}</p></div>`;
+    const card=document.createElement('div');card.className='scn rv';
+    card.innerHTML=`<div class="lbl cap">${a.label}</div><div class="big"><span class="delta mono ${a.dl<0?'neg':''}">${a.dl<0?'−':'+'}₹0.0L</span><span class="cap" style="color:var(--muted);font-size:10.5px">by 2036</span></div>${miniChart(a)}<div class="lg"><span><i style="border-color:#8C7FD6"></i>${a.leg}</span><span><i style="border-color:#6E7C88;border-top-style:dashed"></i>Current plan</span></div><div class="math">${a.math.map(m=>`<div><span>${m[0]}</span><b>${m[1]}</b></div>`).join('')}</div>`;
+    const acts=document.createElement('div');acts.className='acts rv';acts.innerHTML='<button class="btn pri">APPLY TO MY PLAN</button><button class="btn sec2">SHOW MATH</button>';
+    const sug=document.createElement('div');sug.className='sugs rv';sug.innerHTML='<button class="sug">Why did my 5Y drop?</button><button class="sug">Try a 10% SIP step-up</button>';
+    $('#thread').append(card,acts,sug);
+    const seq=[...box.querySelectorAll('.rv'),card,acts,sug];
+    seq.forEach((el,i)=>setTimeout(()=>el.classList.add('in'),60+i*140));
+    setTimeout(()=>count(card.querySelector('.delta'),Math.abs(a.dl),v=>(a.dl<0?'−':'+')+L(v),900),340);
+    setTimeout(()=>sheet.classList.add('answered'),700);
+    acts.children[0].onclick=e=>{const b=e.currentTarget;if(b.classList.contains('done'))return;b.classList.add('done');b.textContent='APPLIED ✓';toast(`Plan updated · ${a.dl<0?'−':'+'}${L(Math.abs(a.dl))} by 2036`)};
+    acts.children[1].onclick=e=>{const m=card.querySelector('.math');m.classList.toggle('open');e.currentTarget.textContent=m.classList.contains('open')?'HIDE MATH':'SHOW MATH'};
+    [...sug.children].forEach(b=>b.onclick=()=>send(b.textContent));
+  },1100);
+}
+function send(text){
+  const row=document.createElement('div');row.className='user-row';row.innerHTML='<div class="bubble"></div>';row.firstChild.textContent=text;
+  $('#thread').append(row);ask(text,row);
+}
+$('#askBtn').addEventListener('click',()=>{
+  const p=$('#prompt'),t=p.textContent.trim();if(!t)return p.focus();
+  p.contentEditable='false';p.blur();$('#bubble').classList.remove('editable');$('#askBtn').classList.add('fired');
+  ask(t,$('#askRow'));
+});
+$('#askbar').addEventListener('submit',e=>{e.preventDefault();const i=$('#askInput'),t=i.value.trim();if(!t)return;i.value='';send(t)});
+let tt;function toast(t){$('#toastTxt').textContent=t;$('#toast').classList.add('show');clearTimeout(tt);tt=setTimeout(()=>$('#toast').classList.remove('show'),2200)}
+
+$('#reset').addEventListener('click',()=>{closeSheet();$('#prompt').textContent='What if I buy the car in 2028 instead?';const f=hy;tween(f,2031,300,v=>render(v),()=>{hy=2031;render(hy);lastTotal=138;$('#total').textContent='₹1.38Cr';$('#house').classList.add('hint');$('#expand').classList.add('pulse')})});
+
+function fit(){s=Math.min(1,(innerHeight-70)/956,(innerWidth-32)/440);$('#stage').style.setProperty('--s',s);$('#phone').style.setProperty('--s',s)}
+addEventListener('resize',fit);fit();
+</script>
+</body>
+</html>
