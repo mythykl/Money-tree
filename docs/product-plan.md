@@ -51,6 +51,7 @@ These are the inputs the forecast needs. Each one should be visible and editable
 | **Venture** | Own startup | Income drops, capital goes out, and the outcome is high-variance. The curve splits into branches: fails, breaks even, grows. |
 
 - **Goal timeline strip** sits under the chart, with goal markers pinned to their dates. Dragging a goal later (say, house from 2029 to 2031) redraws the curve live. This is the "aha" moment.
+  - *Prototyped* in the Wealth portfolio [prototype](../prototypes/wealth-portfolio/): House snaps to whole years (2028–2035), a dashed ghost marks the original date, and the caption, total and chart tooltip update as you drag ("Moving House '29 → '31 adds ₹6.4L by 2036").
 
 ### 3B. Scenario lines
 
@@ -70,11 +71,13 @@ These are the inputs the forecast needs. Each one should be visible and editable
 
 - Dragging across the chart shows a tooltip card with net worth, asset split, goals hit by then, and age ("age 31").
 - Tapping a point opens a detail sheet with the full breakdown for that month or year.
+- *Prototyped:* the tooltip carries a ↗ button that opens the detail sheet as a bottom sheet over the dimmed screen: date and age, value with range, allocation bar and legend, and "Goals hit by then".
 
 ### 3E. AI chat
 
 - Scope it to "what if" and "explain" questions, e.g. "What if I buy the car in 2027 instead?" or "Why did my 5Y number drop?"
 - The best pattern is for the AI to answer by **redrawing the chart as a scenario**, not only replying with text.
+- *Prototyped:* the detail sheet ends with an editable suggested question and an **Ask** button. Asking expands the sheet to full height and answers with a one-line headline, a short reason, a scenario card (delta by 2036 and a mini chart against the current plan), **Apply to my plan** / **Show math**, follow-up suggestions and an "Ask a what-if…" input.
 
 ### 3F. Market and news impact
 
@@ -171,7 +174,7 @@ These are the inputs the forecast needs. Each one should be visible and editable
 | Scrub tooltip | 04 Inverse tooltip (pill bar chart) |
 | Transactions / categories | 06 List & breakdown |
 
-**New components needed**
+**New components needed** (the goal timeline strip and AI chat sheet are prototyped in the Wealth portfolio [prototype](../prototypes/wealth-portfolio/); still to be built as DS components)
 - [ ] Fan chart (scenario bands)
 - [ ] Goal timeline strip with draggable markers
 - [ ] Category slider row
@@ -216,6 +219,12 @@ The chart, the scrubber, the AI "what if" answers and all three scenarios call t
 
 ---
 
+**Prototypes**
+
+- [Wealth portfolio flow](../prototypes/wealth-portfolio/) (Sep 2026): goal timeline drag → scrub tooltip → detail sheet → AI what-if answer. Live at `/prototypes/wealth-portfolio` on the Vercel project. Numbers come from a placeholder curve, not the forecast engine.
+
+---
+
 ## 8. Open decisions
 
 - [ ] **Data source for v1:** manual entry / SMS parsing / Account Aggregator?
@@ -223,3 +232,5 @@ The chart, the scrubber, the AI "what if" answers and all three scenarios call t
 - [ ] **Credits:** what can users redeem them for?
 - [ ] **Breathe-in trigger:** what counts as "too often"?
 - [ ] **Goal map:** confirm the priority-vs-time interpretation.
+- [ ] **Detail sheet entry:** keep the ↗ button in the tooltip as the only way in, or also open the sheet on tapping the chart?
+- [ ] **Apply to my plan:** what exactly does it change (goal date, SIP amount), and can it be undone?

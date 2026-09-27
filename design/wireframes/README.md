@@ -12,5 +12,7 @@ Editable SVG wireframes built on Finance Tracker DS v0.1 (440 frame, 36 margins,
 | 04-subscriptions.svg | Subscriptions with unused-subscription insight |
 | 05-breathe-in.svg | Breathe-in interstitial |
 
+For the interactive version of the wealth home (goal drag, detail sheet, AI what-if), see the [Wealth portfolio prototype](../../prototypes/wealth-portfolio/).
+
 To change copy or layout, edit `build.py` and run `python3 build.py`.
 Fonts: Inter (text) and Space Mono (numbers) — install both so Figma keeps text editable.
