@@ -21,4 +21,4 @@ cd Money-tree
 
 ## Status
 
-Design stage. The first clickable prototype, the [Wealth portfolio flow](prototypes/wealth-portfolio/), is live on Vercel at `/prototypes/wealth-portfolio`. No app code yet.
+Design stage. The first clickable prototype, the [Wealth portfolio flow](prototypes/wealth-portfolio/), is live at [money-tree-financetracker.vercel.app](https://money-tree-financetracker.vercel.app). No app code yet.

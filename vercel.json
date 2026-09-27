@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/prototypes/wealth-portfolio/index.html" }
+  ]
+}
